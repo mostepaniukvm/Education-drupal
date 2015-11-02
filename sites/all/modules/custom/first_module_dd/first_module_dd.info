@@ -1,0 +1,5 @@
+; &Id:$
+name = First module dd
+description = Module for using hook_menu.
+version = 7.x-dev
+core = 7.x

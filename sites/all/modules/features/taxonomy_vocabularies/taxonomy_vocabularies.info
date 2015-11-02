@@ -1,0 +1,9 @@
+name = Taxonomy vocabularies
+core = 7.x
+package = all features
+dependencies[] = features
+dependencies[] = taxonomy
+features[features_api][] = api:2
+features[taxonomy][] = genre_of_films
+features[taxonomy][] = tags
+project path = sites/all/modules/features

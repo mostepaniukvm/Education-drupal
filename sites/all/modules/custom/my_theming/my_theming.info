@@ -1,0 +1,5 @@
+; &Id:$
+name = my_theming
+description = Module for using basic theming functions.
+version = 7.x-dev
+core = 7.x

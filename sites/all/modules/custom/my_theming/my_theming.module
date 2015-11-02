@@ -1,0 +1,215 @@
+<?php
+/**
+ * @file
+ * Build page.
+ *
+ * Implements hook_menu().
+ */
+function my_theming_menu() {
+  $items = array();
+  $items['theming'] = array(
+    'title' => 'Theming Functions',
+    'access callback' => TRUE,
+    'page callback' => 'menu_theming_functions',
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => 'main-menu',
+  );
+  $items['theming/list'] = array(
+    'title' => 'theme_item_list',
+    'description' => 'Theming',
+    'page callback' => 'theming_list_page',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['theming/table'] = array(
+    'title' => 'theme_table',
+    'page callback' => 'theming_table_page',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+  $items['theming/fieldset'] = array(
+    'title' => 'theme_fieldset',
+    'page callback' => 'theming_fieldset_page',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+  );
+  $items['theming/image_style'] = array(
+    'title' => 'theme_image_style',
+    'page callback' => 'theming_image_style_page',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+  );
+  $items['theming/function_hook_theme'] = array(
+    'title' => 'Add tags h2 and strong.',
+    'page callback' => 'add_h2_strong',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+  );
+  $items['theming/template_hook_theme'] = array(
+    'title' => 'Add tag h1 in template',
+    'page callback' => 'add_tpl_file',
+    'access callback' => TRUE,
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 6,
+  );
+  return $items;
+}
+/**
+ * Callback function for using tpl file.
+ */
+function add_tpl_file() {
+  $text = theme('tpl_file', array('text' => 'Some text'));
+  return $text;
+}
+/**
+ * Callback parent menu function.
+ */
+function menu_theming_functions() {
+  return 'Welcome';
+}
+/**
+ * Callback custom theming function.
+ */
+function add_h2_strong() {
+  $text = theme('h2_strong', array('text' => 'Some text'));
+  return $text;
+}
+/**
+ * Implements hook_theme().
+ */
+function my_theming_theme() {
+  $theming_functions = array(
+    'h2_strong' => array(
+      'variables' => array(
+        'text' => NULL,
+      ),
+    ),
+    'tpl_file' => array(
+      'variables' => array(
+        'text' => NULL,
+      ),
+      'template' => 'tpl_file',
+    ),
+  );
+  return $theming_functions;
+}
+/**
+ * Theming function which add h2 and strong tags.
+ */
+function theme_h2_strong($variables) {
+  $text = isset($variables['text']) ? $variables['text'] : '';
+  $output = '<h2><strong>' . $text . '</strong></h2>';
+  return $output;
+}
+/**
+ * Function theme_item_list.
+ */
+function theming_list_page() {
+  $variables = array(
+    'items' => array(),
+    'title' => t('List item'),
+    'type' => 'ul',
+    'attributes' => array(),
+  );
+  $variables['items'] = array(
+    t('First list item.'),
+    array(
+      'data' => t('Second list item.'),
+      'class' => array('second-item'),
+    ),
+    array(
+      'data' => t('Third list item.'),
+      'children' => array(
+        array(
+          'data' => t('First nested list item.'),
+          'class' => array('first-nested-item'),
+        ),
+        t('Second nested list item'),
+      ),
+    ),
+  );
+  $list_page = theme('item_list', $variables);
+  return $list_page;
+}
+/**
+ * Function theme_table.
+ */
+function theming_table_page() {
+  $header = array(
+    array('data' => t('header cell 1')),
+    array('data' => t('header cell 2')),
+    array('data' => t('header cell 3')),
+  );
+  $rows[] = array(
+    array(
+      'data' => t('Cell 11'), 
+      'colspan' => 2,
+    ),
+    array(
+      'data' => t('Any text'),
+      'class' => array('cell'),
+    ),
+  );
+  $rows[] = array(
+    array('data' => t('Cell 21')),
+    array('data' => t('Cell 22')),
+    array('data' => t('Cell 23')),
+  );
+  $table_variable = array(
+    'header' => $header,
+    'rows' => $rows,
+  );
+  $table = theme('table', $table_variable);
+  return $table;
+}
+/**
+ * Function theme_fieldset.
+ */
+function theming_fieldset_page() {
+  drupal_add_js('misc/form.js');
+  drupal_add_js('misc/collapse.js'); 
+  drupal_add_library('system', 'drupal.collapse');
+  $fieldset_element_1 = array(
+    '#title' => t('Fieldset one.'),
+    '#children' => t('children') . theming_list_page(),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+    '#attributes' => array(
+      'class' => array('collapsible', 'collapsed'),
+    ),
+  );
+  $fieldset1 = theme('fieldset', array('element' => $fieldset_element_1));
+  $fieldset_element_2 = array(
+    '#title' => t('Fieldset two.'),
+    '#children' => t('children') . theming_table_page(),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+    '#attributes' => array(
+      'class' => array('collapsible', 'collapsed'),
+    ),
+  );
+  $fieldset2 = theme('fieldset', array('element' => $fieldset_element_2));
+  return $fieldset1 . $fieldset2;
+}
+/**
+ * Function theme_image_style.
+ */
+function theming_image_style_page() {
+  $image_style = array(
+    'style_name' => 'medium',
+    'path' => 'content/film/God_father.jpg',
+    'alt' => t('Alternative text'),
+    'title' => t('Title text'),
+    'attributes' => array('class' => array('theming-image')),
+  ); 
+  $image_variable = theme('image_style', $image_style);
+  return $image_variable;
+}
+
+
+

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Page manager: node_view: View variant page feature.
+ */
+
+include_once 'page_manager_node_view_view_variant_page.features.inc';

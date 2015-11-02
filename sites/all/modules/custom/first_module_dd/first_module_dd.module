@@ -1,0 +1,88 @@
+<?php
+/**
+ * @file
+ * Build page.
+ *
+ * Implements hook_menu().
+ */
+function first_module_dd_menu() {
+  $items = array();
+  $items['home'] = array(
+    'title' => 'Main page',
+    'page callback' => 'build_main_page',
+    'access callback' => TRUE,
+  );
+  $items['page403'] = array(
+    'title' => '403',
+    'page callback' => 'callback_403',
+    'access callback' => TRUE,
+  );
+  $items['page404'] = array(
+    'title' => '404',
+    'page callback' => 'callback_404',
+    'access callback' => TRUE,
+  );
+return $items;
+}  
+
+/**
+ * Implements callback function build_main_page().
+ */
+function build_main_page() {
+  return 'This is main page!';
+}
+
+/**
+ * Implements callback function callback_403().
+ */
+function callback_403() {
+  return 'Forbidden';
+}
+
+/**
+ * Implements callback function callback_404().
+ */
+function callback_404() {
+  return 'Page not found';
+}
+
+/**
+ * Implement hook_block_info()
+ */
+function first_module_dd_block_info() {
+  $blocks = array();
+  $blocks['block_all_pages'] = array(
+    'info' => t('Test block for all pages of site'),
+    'status' => TRUE,
+    'region' => 'sidebar_first',
+  );
+  return $blocks; 
+}
+
+/**
+ * Implement hook_block_view()
+ */
+function first_module_dd_block_view($delta = '') {
+  $block = array();
+  if ($delta == 'block_all_pages') {
+    $block['subject'] = t('Test block for all pages.');
+    if (user_access('content_block')) {
+      $block['content'] = t('This block are everywhere!');
+    }
+    else {
+      $block['content'] = t('Access to view this content is denied.');
+    }
+  }
+  return $block; 
+}
+
+/**
+ * Implements hook_permission()
+ */
+function first_module_dd_permission() {
+  $perm = array();
+  $perm['content_block'] = array(
+    'title' => t('Access to block content'),
+  );
+  return $perm;
+}

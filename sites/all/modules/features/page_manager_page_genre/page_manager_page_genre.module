@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Page manager: page-genre feature.
+ */
+
+include_once 'page_manager_page_genre.features.inc';
