@@ -1,0 +1,236 @@
+<?php
+/**
+ * @file
+ * Contains base function for module.
+ */
+/**
+ * Implements hook_menu().
+ */
+function my_database_menu() {
+  $items['view_database/insert_database'] = array(
+    'title' => 'Form to insert in database',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('insert_database_form'),
+    'access callback' => TRUE,
+    'menu_name' => 'main-menu',
+    'weight' => 3,
+  );
+  $items['view_database'] = array(
+    'title' => 'Table with database data',
+    'page callback' => 'select_databese_table_page',
+    'access callback' => TRUE,
+  );
+  $items['view_database/%/delete'] = array(
+    'title' => 'Delete row',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('remove_row_from_table_form', 1),
+    'access callback' => TRUE,
+  );
+  $items['view_database/%/update'] = array(
+    'title' => 'Update row',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('update_row_from_table_form', 1),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+/**
+ * Build form for insert data in database.
+ */
+function insert_database_form() {
+  $form = array();
+  $form['number'] = array(
+    '#title' => t('Number') . ':',
+    '#description' => t('Input number with maxlength 6'),
+    '#type' => 'textfield',
+    '#maxlength' => 6,
+  );
+  $form['teaser'] = array(
+    '#title' => t('Teaser') . ':',
+    '#description' => t('Enter teaser with maxlength 150'),
+    '#type' => 'textfield',
+    '#maxlength' => 150,
+  );
+  $form['text'] = array(
+    '#title' => t('Text') . ':',
+    '#type' => 'textarea',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  return $form;
+}
+
+/**
+ * Validations form from insert_database_form().
+ */
+function insert_database_form_validate($form, &$form_state) {
+  if (drupal_strlen($form_state['values']['number']) > 6) {
+    form_set_error('number', t('Field "number" must be less than 6 chars'));
+  }
+  elseif (!ctype_digit($form_state['values']['number'])) {
+   form_set_error('number', 'Field "@fieldname" must be numeric', array('@fieldname' => t('number')));
+  }
+  if (drupal_strlen($form_state['values']['teaser']) > 150) {
+    form_set_error('teaser', t('Field "teaser" must be less than 150 chars'));
+  }
+}
+
+/**
+ * Submiting form from insert_database_form().
+ */
+function insert_database_form_submit($form, &$form_state) {
+  $query = db_insert('custom_table')
+    ->fields(array(
+      'number' => $form_state['values']['number'],
+      'teaser' => $form_state['values']['teaser'],
+      'text' => $form_state['values']['text'],
+    ))
+    ->execute();
+  if ($query > 0) {
+    drupal_set_message(t('Data is saved in database'));
+  }
+  else {
+    drupal_set_message(t('Error')); 
+  }
+}
+
+/**
+ * Function which view database data.
+ */
+function select_databese_table_page() {
+  $header = array(t('ID'), t('Number'), t('Teaser'), t('Text'), t('Actions'));
+  $rows = array();
+  $query = db_select('custom_table', 't')
+    ->fields('t', array('id', 'number', 'teaser', 'text'))
+    ->execute();
+  while($value = $query->fetchAssoc()) {
+    $rows[] = array(
+      $value['id'],
+      $value['number'],
+      $value['teaser'],
+      $value['text'],
+      l(t('Update'), "view_database/{$value['id']}/update") . l(t('Delete'), "view_database/{$value['id']}/delete"),
+    );
+  }
+  $rows[] = array(
+    l(t('Add'), 'view_database/insert_database')
+  );
+  return theme('table', array('header' => $header, 'rows' => $rows));
+}
+
+/**
+ * Build update form.
+ */
+function update_row_from_table_form($form, $form_state) {
+  $form = array();
+  $id = $form_state['build_info']['args'][0];
+  $row = db_select('custom_table', 'ct')
+    ->condition('ct.id', $id)
+    ->fields('ct')
+    ->execute()
+    ->fetchAssoc();
+  if (empty($row) || empty($row['number'])) {
+    $plaseholder = array(
+      '@id' => $id,
+      '!table' => l('Back to table', 'view_database'),
+    );
+    $form['text'] = array(
+      '#markup' => t('Does not exist row with id @id. !table', $plaseholder),
+    );
+    return $form;
+  }
+  $form['number'] = array(
+    '#title' => t('Number') . ':',
+    '#description' => t('Input number with maxlength 6'),
+    '#type' => 'textfield',
+    '#maxlength' => 6,
+    '#default_value' => $row['number'],
+  );
+  $form['teaser'] = array(
+    '#title' => t('Teaser') . ':',
+    '#description' => t('Enter teaser with maxlength 150'),
+    '#type' => 'textfield',
+    '#maxlength' => 150,
+    '#default_value' => $row['teaser'],
+  );
+  $form['text'] = array(
+    '#title' => t('Text') . ':',
+    '#type' => 'textarea',
+    '#default_value' => $row['text'],
+  );
+
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['action/submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  $form['action/cancel'] = array(
+    '#markup' => l(t('Cancel'), 'view_database'),
+  );
+
+  $form['#validate'][] = 'insert_database_form_validate';
+  return $form;
+}
+
+/**
+ * Update form submit.
+ */
+function update_row_from_table_form_submit($form, &$form_state) {
+  $id = $form_state['build_info']['args'][0];
+  $values = $form_state['values'];
+  $updated = db_update('custom_table')
+    ->fields(array(
+        'number' => $values['number'],
+        'teaser' => $values['teaser'],
+        'text' => $values['text'],
+    ))
+    ->condition('id', $id)
+    ->execute();
+
+  $plaseholder = array('@id' => $id);
+  if ($updated) {
+    drupal_set_message(t('Row @id updated', $plaseholder));
+  }
+  else {
+    drupal_set_message(t('Row @id can\'t reed', $plaseholder), 'warning');
+  }
+  $form_state['redirect'] = 'view_database';
+}
+
+/**
+ * Build remove form.
+ */
+function remove_row_from_table_form() {
+  $form = array();
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  $form['cancel'] = array(
+    '#markup' => l(t('Cancel'), 'view_database'),
+  );
+  return $form;
+}
+
+/**
+ * Remove form submit.
+ */
+function remove_row_from_table_form_submit($form, &$form_state) {
+  $id = $form_state['build_info']['args'][0];
+  $deleted = db_delete('custom_table')
+    ->condition('id', $id)
+    ->execute();
+  $plaseholder = array('@id' => $id);
+  if ($deleted) {
+    drupal_set_message(t('Row @id removed', $plaseholder));
+  }
+  else {
+    drupal_set_message(t('Row @id can\'t removed', $plaseholder), 'warning');
+  }
+  $form_state['redirect'] = 'view_database';
+}

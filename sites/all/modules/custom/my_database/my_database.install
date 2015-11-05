@@ -1,0 +1,42 @@
+<?php
+/**
+ * @file
+ * Installation file for My database module.
+ *
+ *
+ * Implements hook_schema().
+ */
+function my_database_schema() {
+  $schema['custom_table'] = array(
+    'description' => 'My database for learning Database Api',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary field',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'number' => array(
+        'description' => 'Number field',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'teaser' => array(
+        'description' => 'This is teaser',
+        'type' => 'varchar',
+        'length' => '150',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'text' => array(
+        'description' => 'Text field',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  return $schema;
+}

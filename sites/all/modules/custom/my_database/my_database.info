@@ -1,0 +1,11 @@
+; &Id:$
+name = My database
+description = This is my module for learning database Api.
+core = 7.x
+
+
+
+
+
+
+
